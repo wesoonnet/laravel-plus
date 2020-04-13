@@ -1,6 +1,6 @@
 <?php
 
-namespace WeSoonNet\LaravelPlus\Controllers;
+namespace App\Http\Controllers;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,7 +14,7 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
-class RootController extends BaseController
+class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
@@ -549,6 +549,20 @@ class RootController extends BaseController
             if (2 === count($distance) && !empty($distance[0]) && !empty($distance[1]))
             {
                 $model = $model->distance($distance[1], $distance[0]);
+            }
+        }
+
+        // 其他辅助查询
+        if ($_expand = ($input['expend'] ?? null))
+        {
+            $_expands = explode(';', $_expand);
+            foreach ($_expands as $expand)
+            {
+                // 随机查询
+                if ('random' === $expand)
+                {
+                    $model = $model->inRandomOrder();
+                }
             }
         }
 
