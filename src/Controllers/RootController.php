@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace WeSoonNet\LaravelPlus\Controllers;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
