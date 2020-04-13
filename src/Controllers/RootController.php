@@ -14,7 +14,7 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
-class Controller extends BaseController
+class RootController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
