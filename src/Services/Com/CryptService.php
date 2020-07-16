@@ -1,6 +1,6 @@
 <?php
 
-namespace WeSoonNet\LaravelPlus\Services\Util;
+namespace WeSoonNet\LaravelPlus\Services\Com;
 
 class Crypt
 {

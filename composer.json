@@ -10,7 +10,8 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "ext-openssl": "*"
+        "ext-openssl": "*",
+        "intervention/image": "^2.5"
     },
     "autoload": {
         "psr-4": {
