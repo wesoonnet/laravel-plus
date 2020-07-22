@@ -107,11 +107,13 @@ class RootController extends BaseController
     /**
      * 当前登录用户ID
      *
+     * @param  null  $guard
+     *
      * @return null
      */
-    protected function id()
+    protected function id($guard = null)
     {
-        return ($user = Auth::user()) ? $user->id : null;
+        return ($user = $guard ? Auth::guard($guard)->user() : Auth::user()) ? $user->id : null;
     }
 
     /**
