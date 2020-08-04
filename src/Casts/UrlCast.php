@@ -19,7 +19,7 @@ class UrlCast implements CastsAttributes
      */
     public function get($model, $key, $value, $attributes)
     {
-        return url($value);
+        return url($value, [], !config('app.debug', true));
     }
 
     /**
@@ -34,6 +34,6 @@ class UrlCast implements CastsAttributes
      */
     public function set($model, $key, $value, $attributes)
     {
-        return str_replace(url('') . '/', '', $value);
+        return (is_string($value) && strlen($value)) ? str_replace(url('', [], !config('app.debug', true)), '', $value) : '';
     }
 }
