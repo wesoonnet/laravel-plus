@@ -559,6 +559,18 @@ class RootController extends BaseController
         }
 
         //////////////////////////////////////////////////////////////
+        // 解析地理范围
+        //////////////////////////////////////////////////////////////
+        if ($_geofence = ($input['geofence'] ?? null))
+        {
+            $geofence = explode(';', $_geofence);
+            if (4 === count($geofence))
+            {
+                $model = $model->geofence($geofence[1], $geofence[0], $geofence[2], $geofence[3]);
+            }
+        }
+
+        //////////////////////////////////////////////////////////////
         // 其他辅助查询
         //////////////////////////////////////////////////////////////
         if ($_expand = ($input['expend'] ?? null))

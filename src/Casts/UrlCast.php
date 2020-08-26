@@ -19,7 +19,7 @@ class UrlCast implements CastsAttributes
      */
     public function get($model, $key, $value, $attributes)
     {
-        return url($value, [], !config('app.debug', true));
+        return (is_string($value) && strlen($value)) ? url($value, [], !config('app.debug', true)) : $value;
     }
 
     /**
