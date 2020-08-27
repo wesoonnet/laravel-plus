@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Traits;
+namespace WeSoonNet\LaravelPlus\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 
