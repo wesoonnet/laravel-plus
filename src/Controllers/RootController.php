@@ -331,7 +331,6 @@ class RootController extends BaseController
                             {
                                 if ($_value)
                                 {
-                                    $_value = (false === strpos($_value, ',')) ? [$_value] : explode(',', $_value);
                                     $model  = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
                                     {
                                         $query->where($_with_field, $_value);
@@ -340,13 +339,13 @@ class RootController extends BaseController
                             }
                             else
                             {
-                                if ('haslike' === $_rule)
+                                if ('has_like' === $_rule)
                                 {
                                     if ($_value)
                                     {
-                                        $_value = (false === strpos($_value, ',')) ? [$_value] : explode(',', $_value);
                                         $model  = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
                                         {
+                                            $_value = (false === strpos($_value, '%')) ? "%{$_value}%" : $_value;
                                             $query->where($_with_field, 'like', "%{$_value}%");
                                         });
                                     }
