@@ -340,26 +340,40 @@ class RootController extends BaseController
                             }
                             else
                             {
-                                if ('notnull' === $_rule)
+                                if ('haslike' === $_rule)
                                 {
-                                    if ($with_obj)
+                                    if ($_value)
                                     {
-                                        $SearchArray[$with_obj][] = ['notnull', $_with_field, $_value];
-                                    }
-                                    else
-                                    {
-                                        $model = $model->whereNotNull($_field);
+                                        $_value = (false === strpos($_value, ',')) ? [$_value] : explode(',', $_value);
+                                        $model  = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
+                                        {
+                                            $query->where($_with_field, 'like', "%{$_value}%");
+                                        });
                                     }
                                 }
                                 else
                                 {
-                                    if ($with_obj)
+                                    if ('notnull' === $_rule)
                                     {
-                                        $SearchArray[$with_obj][] = [$_rule, $_with_field, $_value];
+                                        if ($with_obj)
+                                        {
+                                            $SearchArray[$with_obj][] = ['notnull', $_with_field, $_value];
+                                        }
+                                        else
+                                        {
+                                            $model = $model->whereNotNull($_field);
+                                        }
                                     }
                                     else
                                     {
-                                        $model = $model->where($_field, $_rule, $_value);
+                                        if ($with_obj)
+                                        {
+                                            $SearchArray[$with_obj][] = [$_rule, $_with_field, $_value];
+                                        }
+                                        else
+                                        {
+                                            $model = $model->where($_field, $_rule, $_value);
+                                        }
                                     }
                                 }
                             }
