@@ -168,6 +168,7 @@ class RootController extends BaseController
      * @param  bool      $return_json
      *
      * @return array|Builder[]|Collection|JsonResponse
+     * @throws \Exception
      */
     protected function page(array $input, Model $model, callable $cb = null, $return_json = true)
     {
@@ -208,6 +209,7 @@ class RootController extends BaseController
      * @param  callable|null  $cb     回调处理
      *
      * @return Builder|Model
+     * @throws \Exception
      */
     protected function parseQuery(array $input, Model $model, callable $cb = null)
     {
@@ -278,8 +280,6 @@ class RootController extends BaseController
                 if (2 === $count)
                 {
                     [$_field, $_value, $_rule] = explode(':', $_group);
-
-                    // ya
                 }
                 else
                 {
@@ -290,7 +290,7 @@ class RootController extends BaseController
                     }
                     else
                     {
-                        continue;
+                        throw new \Exception('Search must have one value.');
                     }
                 }
 
@@ -300,31 +300,36 @@ class RootController extends BaseController
                 // 子查询
                 $with_obj    = null;
                 $_with_field = null;
+
                 if (strpos($_field, '.'))
                 {
                     $_with_field_array = explode('.', $_field);
                     $_with_field       = array_pop($_with_field_array);
                     $with_obj          = implode('.', $_with_field_array);
                 }
+
                 // 条件处理
-                if ('=' === $_rule)
+                switch ($_rule)
                 {
-                    if ($_value != '')
-                    {
-                        if ($with_obj)
+                    case '=':
+                        if ($_value != '')
                         {
-                            $SearchArray[$with_obj][] = ['=', $_with_field, $_value];
+                            if ($with_obj)
+                            {
+                                $SearchArray[$with_obj][] = ['=', $_with_field, $_value];
+                            }
+                            else
+                            {
+                                $model = $model->where($_field, $_value);
+                            }
                         }
                         else
                         {
-                            $model = $model->where($_field, $_value);
+                            throw new \Exception("Search field {$_field} must have one value.");
                         }
-                    }
-                }
-                else
-                {
-                    if ('like' === $_rule)
-                    {
+                        break;
+
+                    case 'like':
                         $_value = (false === strpos($_value, '%')) ? "%{$_value}%" : $_value;
                         if ($with_obj)
                         {
@@ -334,74 +339,74 @@ class RootController extends BaseController
                         {
                             $model = $model->where($_field, 'like', $_value);
                         }
-                    }
-                    else
-                    {
-                        if ('in' === $_rule)
+                        break;
+
+                    case 'in':
+                        $_value = (false === strpos($_value, ',')) ? [$_value] : explode(',', $_value);
+                        if ($with_obj)
                         {
-                            $_value = (false === strpos($_value, ',')) ? [$_value] : explode(',', $_value);
-                            if ($with_obj)
-                            {
-                                $SearchArray[$with_obj][] = ['in', $_with_field, $_value];
-                            }
-                            else
-                            {
-                                $model = $model->whereIn($_field, $_value);
-                            }
+                            $SearchArray[$with_obj][] = ['in', $_with_field, $_value];
                         }
                         else
                         {
-                            if ('has' === $_rule)
+                            $model = $model->whereIn($_field, $_value);
+                        }
+                        break;
+
+                    case 'has':
+                        if ($_value)
+                        {
+                            $model = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
                             {
-                                if ($_value)
-                                {
-                                    $model = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
-                                    {
-                                        $query->where($_with_field, $_value);
-                                    });
-                                }
+                                $query->where($_with_field, $_value);
+                            });
+                        }
+                        break;
+
+                    case 'has_like':
+                        if ($_value)
+                        {
+                            $model = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
+                            {
+                                $_value = (false === strpos($_value, '%')) ? "%{$_value}%" : $_value;
+                                $query->where($_with_field, 'like', "%{$_value}%");
+                            });
+                        }
+                        break;
+
+                    case 'notnull':
+                        if ($with_obj)
+                        {
+                            $SearchArray[$with_obj][] = ['notnull', $_with_field, $_value];
+                        }
+                        else
+                        {
+                            $model = $model->whereNotNull($_field);
+                        }
+                        break;
+
+                    case 'between':
+                        if ($with_obj)
+                        {
+                            $SearchArray[$with_obj][] = ['between', $_with_field, $_value];
+                        }
+                        else
+                        {
+                            $_value = explode(',', $_value);
+
+                            if (2 === count($_value))
+                            {
+                                $model = $model->whereBetween($_field, $_value);
                             }
                             else
                             {
-                                if ('has_like' === $_rule)
-                                {
-                                    if ($_value)
-                                    {
-                                        $model = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
-                                        {
-                                            $_value = (false === strpos($_value, '%')) ? "%{$_value}%" : $_value;
-                                            $query->where($_with_field, 'like', "%{$_value}%");
-                                        });
-                                    }
-                                }
-                                else
-                                {
-                                    if ('notnull' === $_rule)
-                                    {
-                                        if ($with_obj)
-                                        {
-                                            $SearchArray[$with_obj][] = ['notnull', $_with_field, $_value];
-                                        }
-                                        else
-                                        {
-                                            $model = $model->whereNotNull($_field);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if ($with_obj)
-                                        {
-                                            $SearchArray[$with_obj][] = [$_rule, $_with_field, $_value];
-                                        }
-                                        else
-                                        {
-                                            $model = $model->where($_field, $_rule, $_value);
-                                        }
-                                    }
-                                }
+                                throw new \Exception('Between must have two values.');
                             }
                         }
-                    }
+                        break;
+
+                    default:
+                        throw new \Exception('Undefined search rule.');
                 }
             }
         }
@@ -488,30 +493,42 @@ class RootController extends BaseController
                                 foreach ($SearchArray[$_obj] as $_search)
                                 {
                                     [$_r, $_f, $_v] = $_search;
-                                    if ('=' == $_r)
+
+                                    switch ($_r)
                                     {
-                                        $model = $model->where($_f, $_v);
-                                    }
-                                    else
-                                    {
-                                        if ('like' == $_r)
-                                        {
+                                        case '=':
+                                            $model = $model->where($_f, $_v);
+                                            break;
+
+                                        case 'like':
+                                            $_v    = (false === strpos($_v, '%')) ? "%{$_v}%" : $_v;
                                             $model = $model->where($_f, 'like', $_v);
-                                        }
-                                        else
-                                        {
-                                            if ('in' == $_r)
+                                            break;
+
+                                        case 'in':
+                                            $_v    = (false === strpos($_v, ',')) ? [$_v] : explode(',', $_v);
+                                            $model = $model->whereIn($_f, $_v);
+                                            break;
+
+                                        case 'notnull':
+                                            $model = $model->whereNotNull($_f);
+                                            break;
+
+                                        case 'between':
+                                            $_value = explode(',', $_v);
+
+                                            if (2 === count($_value))
                                             {
-                                                $model = $model->whereIn($_f, $_v);
+                                                $model = $model->whereBetween($_f, $_value);
                                             }
                                             else
                                             {
-                                                if ('notnull' == $_r)
-                                                {
-                                                    $model = $model->whereNotNull($_f);
-                                                }
+                                                throw new \Exception('Between must have two values.');
                                             }
-                                        }
+                                            break;
+
+                                        default:
+                                            throw new \Exception('Undefined search rule.');
                                     }
                                 }
                             }
@@ -529,31 +546,27 @@ class RootController extends BaseController
                                 foreach ($_search as $_s)
                                 {
                                     [$_r, $_f, $_v] = $_s;
-                                    if ('=' == $_r)
-                                    {
 
-                                        $query->where($_f, $_v);
-                                    }
-                                    else
+                                    switch ($_r)
                                     {
-                                        if ('like' == $_r)
-                                        {
+                                        case '=':
+                                            $query->where($_f, $_v);
+                                            break;
+
+                                        case 'like':
                                             $query->where($_f, 'like', $_v);
-                                        }
-                                        else
-                                        {
-                                            if ('in' == $_r)
-                                            {
-                                                $query->whereIn($_f, $_v);
-                                            }
-                                            else
-                                            {
-                                                if ('notnull' == $_r)
-                                                {
-                                                    $query->whereNotNull($_f);
-                                                }
-                                            }
-                                        }
+                                            break;
+
+                                        case 'in':
+                                            $query->whereIn($_f, $_v);
+                                            break;
+
+                                        case 'notnull':
+                                            $query->whereNotNull($_f);
+                                            break;
+
+                                        default:
+                                            throw new \Exception('Undefined search rule.');
                                     }
                                 }
                             },
