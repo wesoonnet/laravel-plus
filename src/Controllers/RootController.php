@@ -19,6 +19,7 @@ class RootController extends BaseController
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     private $_query_params = [];
+    private $_query_rules  = [];
 
     /**
      * 返回成功消息
@@ -135,6 +136,27 @@ class RootController extends BaseController
     protected function pushQuery(string $type, array $query)
     {
         $this->_query_params[$type] = $query;
+    }
+
+    /**
+     * 设置需要验证的查询参数
+     *
+     * @param  string  $type
+     * @param  string  $field
+     * @param  string  $rule
+     * @param  string  $message
+     */
+    protected function ruleQuery(string $type, string $field, string $rule = 'required', string $message = '缺少参数')
+    {
+        $this->_query_rules[$type][$field] = function () use ($field, $rule, $message)
+        {
+            if (true !== ($error = $this->validator([$field], [$field => $rule], ["{$field}.{$rule}" => $message])))
+            {
+                return $this->failure($error, 'VALIDATION_FAIL');
+            }
+
+            return true;
+        };
     }
 
     /**
@@ -256,6 +278,8 @@ class RootController extends BaseController
                 if (2 === $count)
                 {
                     [$_field, $_value, $_rule] = explode(':', $_group);
+
+                    // ya
                 }
                 else
                 {
@@ -331,7 +355,7 @@ class RootController extends BaseController
                             {
                                 if ($_value)
                                 {
-                                    $model  = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
+                                    $model = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
                                     {
                                         $query->where($_with_field, $_value);
                                     });
@@ -343,7 +367,7 @@ class RootController extends BaseController
                                 {
                                     if ($_value)
                                     {
-                                        $model  = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
+                                        $model = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
                                         {
                                             $_value = (false === strpos($_value, '%')) ? "%{$_value}%" : $_value;
                                             $query->where($_with_field, 'like', "%{$_value}%");
@@ -458,6 +482,7 @@ class RootController extends BaseController
                                     }
                                 }
                             }
+
                             if (in_array($_obj, array_keys($SearchArray)))
                             {
                                 foreach ($SearchArray[$_obj] as $_search)
@@ -497,14 +522,16 @@ class RootController extends BaseController
                 {
                     if (in_array($_group, array_keys($SearchArray)))
                     {
-                        foreach ($SearchArray[$_group] as $_search)
-                        {
-                            $model = $model->with([
-                                $_group => function ($query) use ($_search)
+                        $_search = $SearchArray[$_group];
+                        $model   = $model->with([
+                            $_group => function ($query) use ($_search)
+                            {
+                                foreach ($_search as $_s)
                                 {
-                                    [$_r, $_f, $_v] = $_search;
+                                    [$_r, $_f, $_v] = $_s;
                                     if ('=' == $_r)
                                     {
+
                                         $query->where($_f, $_v);
                                     }
                                     else
@@ -528,9 +555,9 @@ class RootController extends BaseController
                                             }
                                         }
                                     }
-                                },
-                            ]);
-                        }
+                                }
+                            },
+                        ]);
                     }
                     else
                     {
