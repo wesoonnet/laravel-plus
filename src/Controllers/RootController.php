@@ -407,6 +407,29 @@ class RootController extends BaseController
                         }
                         break;
 
+                    case 'between_datetime':
+                        if ($with_obj)
+                        {
+                            $SearchArray[$with_obj][] = ['between', $_with_field, $_value];
+                        }
+                        else
+                        {
+                            $_value = urldecode($_value);
+                            $_value = explode(',', $_value);
+
+                            if (2 === count($_value))
+                            {
+                                $_value[0] = date('Y-m-d H:i:s', $_value[0]);
+                                $_value[1] = date('Y-m-d H:i:s', $_value[1]);
+                                $model     = $model->whereBetween($_field, $_value);
+                            }
+                            else
+                            {
+//                                throw new \Exception('Between must have two values.');
+                            }
+                        }
+                        break;
+
                     default:
 //                        throw new \Exception('Undefined search rule.');
                 }
@@ -523,6 +546,23 @@ class RootController extends BaseController
 
                                             if (2 === count($_v))
                                             {
+                                                $model = $model->whereBetween($_f, $_v);
+                                            }
+                                            else
+                                            {
+//                                                throw new \Exception('Between must have two values.');
+                                            }
+                                            break;
+
+                                        case 'between_datetime':
+
+                                            $_v = urldecode($_v);
+                                            $_v = explode(',', $_v);
+
+                                            if (2 === count($_v))
+                                            {
+                                                $_v[0] = date('Y-m-d H:i:s', $_v[0]);
+                                                $_v[1] = date('Y-m-d H:i:s', $_v[1]);
                                                 $model = $model->whereBetween($_f, $_v);
                                             }
                                             else
