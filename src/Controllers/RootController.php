@@ -290,7 +290,7 @@ class RootController extends BaseController
                     }
                     else
                     {
-                        throw new \Exception('Search must have one value.');
+//                        throw new \Exception('Search must have one value.');
                     }
                 }
 
@@ -325,7 +325,7 @@ class RootController extends BaseController
                         }
                         else
                         {
-                            throw new \Exception("Search field {$_field} must have one value.");
+//                            throw new \Exception("Search field {$_field} must have one value.");
                         }
                         break;
 
@@ -400,13 +400,13 @@ class RootController extends BaseController
                             }
                             else
                             {
-                                throw new \Exception('Between must have two values.');
+//                                throw new \Exception('Between must have two values.');
                             }
                         }
                         break;
 
                     default:
-                        throw new \Exception('Undefined search rule.');
+//                        throw new \Exception('Undefined search rule.');
                 }
             }
         }
@@ -523,12 +523,12 @@ class RootController extends BaseController
                                             }
                                             else
                                             {
-                                                throw new \Exception('Between must have two values.');
+//                                                throw new \Exception('Between must have two values.');
                                             }
                                             break;
 
                                         default:
-                                            throw new \Exception('Undefined search rule.');
+//                                            throw new \Exception('Undefined search rule.');
                                     }
                                 }
                             }
@@ -566,7 +566,7 @@ class RootController extends BaseController
                                             break;
 
                                         default:
-                                            throw new \Exception('Undefined search rule.');
+//                                            throw new \Exception('Undefined search rule.');
                                     }
                                 }
                             },
