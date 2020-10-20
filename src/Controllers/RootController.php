@@ -290,12 +290,13 @@ class RootController extends BaseController
                     }
                     else
                     {
-//                        throw new \Exception('Search must have one value.');
+                        throw new \Exception('Search must have one value.');
                     }
                 }
 
                 // 空值处理
                 $_value = in_array($_value, ['null', 'NULL']) ? null : $_value;
+                $_value = urldecode($_value);
 
                 // 子查询
                 $with_obj    = null;
@@ -392,6 +393,7 @@ class RootController extends BaseController
                         }
                         else
                         {
+                            $_value = urldecode($_value);
                             $_value = explode(',', $_value);
 
                             if (2 === count($_value))
@@ -515,11 +517,13 @@ class RootController extends BaseController
                                             break;
 
                                         case 'between':
-                                            $_value = explode(',', $_v);
 
-                                            if (2 === count($_value))
+                                            $_v = urldecode($_v);
+                                            $_v = explode(',', $_v);
+
+                                            if (2 === count($_v))
                                             {
-                                                $model = $model->whereBetween($_f, $_value);
+                                                $model = $model->whereBetween($_f, $_v);
                                             }
                                             else
                                             {
