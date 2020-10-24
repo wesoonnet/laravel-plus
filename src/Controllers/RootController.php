@@ -343,7 +343,10 @@ class RootController extends BaseController
                         break;
 
                     case 'in':
-                        $_value = (false === strpos($_value, ',')) ? [$_value] : explode(',', $_value);
+                        if (!is_array($_value))
+                        {
+                            $_value = (false === strpos($_value, ',')) ? [$_value] : explode(',', $_value);
+                        }
                         if ($with_obj)
                         {
                             $SearchArray[$with_obj][] = ['in', $_with_field, $_value];
@@ -531,7 +534,10 @@ class RootController extends BaseController
                                             break;
 
                                         case 'in':
-                                            $_v    = (false === strpos($_v, ',')) ? [$_v] : explode(',', $_v);
+                                            if (!is_array($_v))
+                                            {
+                                                $_v = (false === strpos($_v, ',')) ? [$_v] : explode(',', $_v);
+                                            }
                                             $model = $model->whereIn($_f, $_v);
                                             break;
 
