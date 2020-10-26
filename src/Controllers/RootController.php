@@ -434,7 +434,17 @@ class RootController extends BaseController
                         break;
 
                     default:
-//                        throw new \Exception('Undefined search rule.');
+                        if ($_value != '' && in_array($_rule, ['>', '<', '>=', '<=', '!=']))
+                        {
+                            if ($with_obj)
+                            {
+                                $SearchArray[$with_obj][] = [$_rule, $_with_field, $_value];
+                            }
+                            else
+                            {
+                                $model = $model->where($_field, $_rule, $_value);
+                            }
+                        }
                 }
             }
         }
