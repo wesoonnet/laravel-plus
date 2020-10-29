@@ -324,10 +324,6 @@ class RootController extends BaseController
                                 $model = $model->where($_field, $_value);
                             }
                         }
-                        else
-                        {
-//                            throw new \Exception("Search field {$_field} must have one value.");
-                        }
                         break;
 
                     case 'like':
@@ -564,10 +560,6 @@ class RootController extends BaseController
                                             {
                                                 $model = $model->whereBetween($_f, $_v);
                                             }
-                                            else
-                                            {
-//                                                throw new \Exception('Between must have two values.');
-                                            }
                                             break;
 
                                         case 'between_datetime':
@@ -581,14 +573,7 @@ class RootController extends BaseController
                                                 $_v[1] = date('Y-m-d H:i:s', $_v[1]);
                                                 $model = $model->whereBetween($_f, $_v);
                                             }
-                                            else
-                                            {
-//                                                throw new \Exception('Between must have two values.');
-                                            }
                                             break;
-
-                                        default:
-//                                            throw new \Exception('Undefined search rule.');
                                     }
                                 }
                             }
@@ -624,9 +609,6 @@ class RootController extends BaseController
                                         case 'notnull':
                                             $query->whereNotNull($_f);
                                             break;
-
-                                        default:
-//                                            throw new \Exception('Undefined search rule.');
                                     }
                                 }
                             },
