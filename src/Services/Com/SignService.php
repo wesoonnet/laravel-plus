@@ -15,7 +15,10 @@ class SignService
      */
     public static function generate(array $data, string $key)
     {
-        isset($data['sing']) && unset($data['sing']);
+        if (isset($data['sign']))
+        {
+            unset($data['sign']);
+        }
 
         ksort($data);
 
@@ -32,6 +35,6 @@ class SignService
      */
     public static function verify(array $data, string $key)
     {
-        return isset($data['sing']) ? ($data['sing'] === self::generate($data, $key)) : false;
+        return isset($data['sign']) ? ($data['sign'] === self::generate($data, $key)) : false;
     }
 }
