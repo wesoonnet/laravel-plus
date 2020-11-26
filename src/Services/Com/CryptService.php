@@ -2,7 +2,7 @@
 
 namespace WeSoonNet\LaravelPlus\Services\Com;
 
-class Crypt
+class CryptService
 {
     /**
      * Encrypt any value
