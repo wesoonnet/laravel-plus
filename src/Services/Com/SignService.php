@@ -22,6 +22,11 @@ class SignService
 
         ksort($data);
 
+        foreach ($data as $k => $v)
+        {
+            $data[$k] = (string) $v;
+        }
+
         return md5(sha1(json_encode($data) . $key));
     }
 
