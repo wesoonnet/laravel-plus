@@ -290,7 +290,8 @@ class RootController extends BaseController
                     }
                     else
                     {
-                        throw new \Exception('Search must have one value.');
+                        continue;
+//                        throw new \Exception('Search must have one value.');
                     }
                 }
 
