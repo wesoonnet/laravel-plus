@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Com;
+namespace WeSoonNet\LaravelPlus\Services\Com;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
