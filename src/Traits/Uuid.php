@@ -2,174 +2,72 @@
 
 namespace WeSoonNet\LaravelPlus\Traits;
 
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Ramsey\Uuid\Exception\InvalidUuidStringException;
-use Ramsey\Uuid\UuidInterface;
 
 /**
- * 模型 UUID
+ * Trait Uuid
  *
- * @package WeSoonNet\LaravelPlus\Traits
+ * @package Jamesh\Uuid
  */
 trait Uuid
 {
-    /**
-     * model disable incrementing
-     *
-     * @var bool
-     */
-    public $incrementing = false;
+
+    protected $isLockedUuid = true;
 
     /**
-     * model primary type
+     * Used by Eloquent to get primary key type.
+     * UUID Identified as a string.
      *
-     * @var string
+     * @return string
      */
-    protected $keyType = 'string';
+    public function getKeyType()
+    {
+        return 'string';
+    }
 
     /**
-     * The UUID versions.
+     * Used by Eloquent to get if the primary key is auto increment value.
+     * UUID is not.
      *
-     * @var array
+     * @return bool
      */
-    protected $uuidVersions = [
-        'uuid1',
-        'uuid4',
-        'uuid6',
-        'ordered',
-    ];
+    public function getIncrementing()
+    {
+        return false;
+    }
 
     /**
-     * Boot the trait, adding a creating observer.
-     *
-     * When persisting a new model instance, we resolve the UUID field, then set
-     * a fresh UUID, taking into account if we need to cast to binary or not.
+     * Add behavior to creating and saving Eloquent events.
      *
      * @return void
      */
-    public static function bootGeneratesUuid(): void
+    public static function bootUuid()
     {
-        static::creating(function ($model)
+        // Create a UUID to the model if it does not have one
+        static::creating(function (Model $model)
         {
-            foreach ($model->uuidColumns() as $item)
+            $model->keyType      = 'string';
+            $model->incrementing = false;
+
+            if (!$model->getKey())
             {
-                /* @var Model|static $model */
-                $uuid = $model->resolveUuid();
-
-                if (isset($model->attributes[$item]) && !is_null($model->attributes[$item]))
-                {
-                    /* @var \Ramsey\Uuid\Uuid $uuid */
-                    try
-                    {
-                        $uuid = Uuid::fromString(strtolower($model->attributes[$item]));
-                    }
-                    catch (InvalidUuidStringException $e)
-                    {
-                        $uuid = Uuid::fromBytes($model->attributes[$item]);
-                    }
-                }
-
-                $model->{$item} = strtolower($uuid->toString());
+                $model->{$model->getKeyName()} = (string) Str::uuid();
             }
         });
-    }
 
-    /**
-     * The name of the column that should be used for the UUID.
-     *
-     * @return string
-     */
-    public function uuidColumn(): string
-    {
-        return 'uuid';
-    }
-
-    /**
-     * The names of the columns that should be used for the UUID.
-     *
-     * @return array
-     */
-    public function uuidColumns(): array
-    {
-        return [$this->uuidColumn()];
-    }
-
-    /**
-     * Resolve a UUID instance for the configured version.
-     *
-     * @return \Ramsey\Uuid\UuidInterface
-     */
-    public function resolveUuid(): UuidInterface
-    {
-        return call_user_func([Uuid::class, $this->resolveUuidVersion()]);
-    }
-
-    /**
-     * Resolve the UUID version to use when setting the UUID value. Default to uuid4.
-     *
-     * @return string
-     */
-    public function resolveUuidVersion(): string
-    {
-        if (property_exists($this, 'uuidVersion') && in_array($this->uuidVersion, $this->uuidVersions))
+        // Set original if someone try to change UUID on update/save existing model
+        static::saving(function (Model $model)
         {
-            return $this->uuidVersion === 'ordered' ? 'uuid6' : $this->uuidVersion;
-        }
+            $original_id = $model->getOriginal('id');
 
-        return 'uuid4';
-    }
-
-    /**
-     * Scope queries to find by UUID.
-     *
-     * @param  Builder       $query
-     * @param  string|array  $uuid
-     * @param  string        $uuidColumn
-     *
-     * @return Builder
-     */
-    public function scopeWhereUuid($query, $uuid, $uuidColumn = null): Builder
-    {
-        $uuidColumn = !is_null($uuidColumn) && in_array($uuidColumn, $this->uuidColumns())
-            ? $uuidColumn
-            : $this->uuidColumns()[0];
-
-        $uuid = array_map(function ($uuid)
-        {
-            return Str::lower($uuid);
-        }, Arr::wrap($uuid));
-
-        if ($this->isClassCastable($uuidColumn))
-        {
-            $uuid = $this->bytesFromUuid($uuid);
-        }
-
-        return $query->whereIn($uuidColumn, Arr::wrap($uuid));
-    }
-
-    /**
-     * Convert a single UUID or array of UUIDs to bytes.
-     *
-     * @param  Arrayable|array|string  $uuid
-     *
-     * @return array
-     */
-    protected function bytesFromUuid($uuid): array
-    {
-        if (is_array($uuid) || $uuid instanceof Arrayable)
-        {
-            array_walk($uuid, function (&$uuid)
+            if (!is_null($original_id) && $model->isLockedUuid)
             {
-                $uuid = Uuid::fromString($uuid)->getBytes();
-            });
-
-            return $uuid;
-        }
-
-        return Arr::wrap(Uuid::fromString($uuid)->getBytes());
+                if ($original_id !== $model->id)
+                {
+                    $model->id = $original_id;
+                }
+            }
+        });
     }
 }

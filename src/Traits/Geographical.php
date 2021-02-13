@@ -21,17 +21,17 @@ trait Geographical
         // Adding already selected columns to query, all columns will be selected by default
         if ($query->getQuery()->columns === null)
         {
-            $query->select($this->getTable().'.*');
+            $query->select($this->getTable() . '.*');
         }
         else
         {
             $query->select($query->getQuery()->columns);
         }
 
-        $sql = "((ACOS(SIN(? * PI() / 180) * SIN(".$latName." * PI() / 180) + COS(? * PI() / 180) * COS(".
-            $latName." * PI() / 180) * COS((? - ".$lonName.") * PI() / 180)) * 180 / PI()) * 60 * ?) as distance";
+        $sql = "((ACOS(SIN(? * PI() / 180) * SIN(" . $latName . " * PI() / 180) + COS(? * PI() / 180) * COS(" .
+            $latName . " * PI() / 180) * COS((? - " . $lonName . ") * PI() / 180)) * 180 / PI()) * 60 * ?) as distance";
 
-        $kilometers = false;
+        $kilometers = true;
         if (property_exists(static::class, 'kilometers'))
         {
             $kilometers = static::$kilometers;
@@ -60,12 +60,12 @@ trait Geographical
 
     protected function getQualifiedLatitudeColumn()
     {
-        return $this->getConnection()->getTablePrefix().$this->getTable().'.'.$this->getLatitudeColumn();
+        return $this->getConnection()->getTablePrefix() . $this->getTable() . '.' . $this->getLatitudeColumn();
     }
 
     protected function getQualifiedLongitudeColumn()
     {
-        return $this->getConnection()->getTablePrefix().$this->getTable().'.'.$this->getLongitudeColumn();
+        return $this->getConnection()->getTablePrefix() . $this->getTable() . '.' . $this->getLongitudeColumn();
     }
 
     public function getLatitudeColumn()

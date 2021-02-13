@@ -1,8 +1,9 @@
 <?php
 
-namespace WeSoonNet\LaravelPlus\Services\Com;
+namespace App\Services\Com;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Request;
 
@@ -83,13 +84,11 @@ class UtilService
      * 上传文件到临时目录
      *
      * @param  UploadedFile  $file
-     * @param  int|null      $width
-     * @param  int|null      $height
      *
      * @return UploadedFile|string
      * @throws \Exception
      */
-    public static function uploadToTemp(UploadedFile $file, int $width = null, int $height = null)
+    public static function uploadToTemp(UploadedFile $file)
     {
         $ext = $file->getClientOriginalExtension();
 
@@ -106,14 +105,7 @@ class UtilService
             throw new \Exception('服务器处理文件失败');
         }
 
-        $file = "uploadfiles/tmp/{$filename}";
-
-        if ($width || $height)
-        {
-            ImageService::resize(public_path($file), $width, $height);
-        }
-
-        return $file;
+        return "uploadfiles/tmp/{$filename}";
     }
 
     /**
@@ -159,16 +151,14 @@ class UtilService
      *
      * @param  string    $file
      * @param  string    $newFile
-     * @param  int|null  $width
-     * @param  int|null  $height
      *
      * @return string
      */
-    public static function moveTmpFileToDir(string $file, string $newFile, int $width = null, int $height = null)
+    public static function moveTmpFileToDir(string $file, string $newFile)
     {
         if (!is_string($file) || empty($file))
         {
-            return null;
+            return '';
         }
 
         $tmp  = 'uploadfiles/tmp';
@@ -199,19 +189,17 @@ class UtilService
             File::move(public_path($file), public_path($newFile));
         }
 
-        ImageService::resize(public_path($file), $width, $height);
-
         return $newFile;
     }
 
     /**
-     * 生成16位随机数
+     * 生成18位随机数
      *
      * @return string
      */
     public static function no()
     {
-        return (date('YmdHis') . rand(10000000, 99999999));
+        return (date('YmdHis') . rand(1000, 9999));
     }
 
     /**
@@ -222,6 +210,32 @@ class UtilService
     public static function uniqid()
     {
         return crc32(md5(uniqid()));
+    }
+
+    /**
+     * 生成唯一数字序号
+     *
+     * @param  string  $key
+     * @param  int     $start
+     *
+     * @return int|mixed
+     */
+    public static function sn(string $key, int $start = 1)
+    {
+        $key = md5($key);
+
+        if (!Cache::has($key))
+        {
+            Cache::set($key, $start);
+        }
+        else
+        {
+            $start = ((int) Cache::get($key)) + 1;
+
+            Cache::set($key, $start);
+        }
+
+        return $start;
     }
 
     /**
@@ -286,7 +300,9 @@ class UtilService
         return $weeks[date("w")];
     }
 
-    /** 金额格式化
+    /**
+     *
+     * 金额格式化
      *
      * @param  int  $price    传入金额单位分
      * @param  int  $decimal  保留小数位数
@@ -296,5 +312,60 @@ class UtilService
     public static function priceFormat($price, $decimal = 2)
     {
         return (float) round(((int) $price / 100), $decimal);
+    }
+
+    /**
+     * 字符串加掩码
+     *
+     * @param          $var
+     * @param  int     $start
+     * @param  int     $length
+     * @param  string  $char
+     *
+     * @return mixed
+     */
+    public static function mask($var, $start = 4, $length = 4, $char = '*')
+    {
+        return substr_replace($var, str_repeat($char, $length), $start, $length);
+    }
+
+    /**
+     * 正则匹配规则
+     *
+     * @param $rule
+     * @param $value
+     *
+     * @return false|int
+     */
+    public static function regex($rule, $value)
+    {
+        $rules   = [
+            'username' => "/^\w{4,16}$/i",
+            'password' => "/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,16}$/",
+            'captcha'  => "/^[0-9]{4}$/",
+            'mobile'   => "/^1[0123456789][0-9]{9}$/",
+            'email'    => "/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$/i",
+        ];
+        $pattern = $rules[$rule] ?? $rule;
+
+        return preg_match($pattern, $value);
+    }
+
+    /**
+     * 删除字符串中的表情
+     *
+     * @param $str
+     *
+     * @return string|string[]|null
+     */
+    public function removeEmoji($str)
+    {
+        $str = preg_replace_callback('/./u',
+            function (array $match)
+            {
+                return strlen($match[0]) >= 4 ? '' : $match[0];
+            },
+            $str);
+        return $str;
     }
 }
