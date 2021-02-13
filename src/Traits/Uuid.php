@@ -4,27 +4,33 @@ namespace WeSoonNet\LaravelPlus\Traits;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Ramsey\Uuid\Exception\InvalidUuidStringException;
 use Ramsey\Uuid\UuidInterface;
 
 /**
- * UUID generation trait.
+ * 模型 UUID
  *
- * Include this trait in any Eloquent model where you wish to automatically set
- * a UUID field. When saving, if the UUID field has not been set, generate a
- * new UUID value, which will be set on the model and saved by Eloquent.
- *
- * @copyright 2017 Michael Dyrynda
- * @author    Michael Dyrynda <michael@dyrynda.com.au>
- * @license   MIT
- *
- * @property  string $uuidVersion
- * @method  static \Illuminate\Database\Eloquent\Builder  whereUuid(string $uuid)
+ * @package WeSoonNet\LaravelPlus\Traits
  */
 trait Uuid
 {
+    /**
+     * model disable incrementing
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * model primary type
+     *
+     * @var string
+     */
+    protected $keyType = 'string';
+
     /**
      * The UUID versions.
      *
@@ -51,7 +57,7 @@ trait Uuid
         {
             foreach ($model->uuidColumns() as $item)
             {
-                /* @var \Illuminate\Database\Eloquent\Model|static $model */
+                /* @var Model|static $model */
                 $uuid = $model->resolveUuid();
 
                 if (isset($model->attributes[$item]) && !is_null($model->attributes[$item]))
@@ -120,11 +126,11 @@ trait Uuid
     /**
      * Scope queries to find by UUID.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string|array                           $uuid
-     * @param  string                                 $uuidColumn
+     * @param  Builder       $query
+     * @param  string|array  $uuid
+     * @param  string        $uuidColumn
      *
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function scopeWhereUuid($query, $uuid, $uuidColumn = null): Builder
     {
@@ -148,7 +154,7 @@ trait Uuid
     /**
      * Convert a single UUID or array of UUIDs to bytes.
      *
-     * @param  \Illuminate\Contracts\Support\Arrayable|array|string  $uuid
+     * @param  Arrayable|array|string  $uuid
      *
      * @return array
      */
