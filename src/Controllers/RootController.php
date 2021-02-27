@@ -168,7 +168,6 @@ class RootController extends BaseController
      * @param  bool      $return_json
      *
      * @return array|Builder[]|Collection|JsonResponse
-     * @throws \Exception
      */
     protected function page(array $input, Model $model, callable $cb = null, $return_json = true)
     {
@@ -186,7 +185,7 @@ class RootController extends BaseController
 
         if (0 == $_limit)
         {
-            return $model->get();
+            return $this->success($model->get());
         }
 
         $_limit   = (int) $_limit ?: 20;
@@ -198,7 +197,7 @@ class RootController extends BaseController
             'data'         => $paginate->items(),
         ];
 
-        return $return_json ? $this->json($result) : $result;
+        return $return_json ? $this->success($result) : $result;
     }
 
     /**
@@ -217,6 +216,11 @@ class RootController extends BaseController
         if ($cb)
         {
             $model = $cb($model);
+
+            if (!($model instanceof Model))
+            {
+                throw new \Exception('The callback needs to return the model object.');
+            }
         }
 
         // 排序预存
@@ -291,7 +295,6 @@ class RootController extends BaseController
                     else
                     {
                         continue;
-//                        throw new \Exception('Search must have one value.');
                     }
                 }
 
@@ -400,10 +403,6 @@ class RootController extends BaseController
                             {
                                 $model = $model->whereBetween($_field, $_value);
                             }
-                            else
-                            {
-//                                throw new \Exception('Between must have two values.');
-                            }
                         }
                         break;
 
@@ -422,10 +421,6 @@ class RootController extends BaseController
                                 $_value[0] = date('Y-m-d H:i:s', $_value[0]);
                                 $_value[1] = date('Y-m-d H:i:s', $_value[1]);
                                 $model     = $model->whereBetween($_field, $_value);
-                            }
-                            else
-                            {
-//                                throw new \Exception('Between must have two values.');
                             }
                         }
                         break;
@@ -498,11 +493,13 @@ class RootController extends BaseController
                         $_obj => function ($query) use ($_fields, $_obj, $_method, $OrderByArray, $SearchArray)
                         {
                             $model = $query;
+
                             if ('with' == $_method)
                             {
                                 // 字段过滤
                                 $_fields_array  = [];
                                 $_fields_array_ = explode(',', $_fields);
+
                                 foreach ($_fields_array_ as $_field)
                                 {
                                     if ($_field)

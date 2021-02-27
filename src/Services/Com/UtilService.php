@@ -149,8 +149,8 @@ class UtilService
     /**
      * 移动文件到目录
      *
-     * @param  string    $file
-     * @param  string    $newFile
+     * @param  string  $file
+     * @param  string  $newFile
      *
      * @return string
      */
@@ -199,7 +199,7 @@ class UtilService
      */
     public static function no()
     {
-        return (date('YmdHis') . rand(1000, 9999));
+        return date('YmdHis') . self::uniqid();
     }
 
     /**
@@ -236,6 +236,20 @@ class UtilService
         }
 
         return $start;
+    }
+
+    /**
+     * 随机字符串
+     *
+     * @param  int   $length
+     * @param  bool  $containNumber
+     *
+     * @return string
+     */
+    public static function randomChars(int $length = 4, bool $containNumber = true)
+    {
+        $chars = $containNumber ? '0123456789abcdefghijkmnpqrstuvwxyz' : 'abcdefghijkmnpqrstuvwxyz';
+        return substr(str_shuffle(str_repeat($chars, ceil($length / strlen($chars)))), 1, $length);
     }
 
     /**
@@ -358,7 +372,7 @@ class UtilService
      *
      * @return string|string[]|null
      */
-    public function removeEmoji($str)
+    public static function removeEmoji($str)
     {
         $str = preg_replace_callback('/./u',
             function (array $match)
@@ -367,5 +381,120 @@ class UtilService
             },
             $str);
         return $str;
+    }
+
+    /**
+     * 格式化成过去时间
+     *
+     * @param  int  $time
+     *
+     * @return string
+     */
+    public static function getPastTime(int $time)
+    {
+        $t = time() - $time;
+        $f = [
+            '31536000' => '年',
+            '2592000'  => '个月',
+            '604800'   => '星期',
+            '86400'    => '天',
+            '3600'     => '小时',
+            '60'       => '分钟',
+            '1'        => null,
+        ];
+        foreach ($f as $k => $v)
+        {
+            if (0 != $c = floor($t / (int) $k))
+            {
+                return $v ? ($c . $v . '前') : '刚刚';
+            }
+        }
+    }
+
+    /**
+     * 数字转字母ID
+     *
+     * @param        $in
+     * @param  bool  $to_num
+     * @param  bool  $pad_up
+     * @param  null  $pass_key
+     *
+     * @return float|int|string
+     */
+    public static function alphaID($in, $to_num = false, $pad_up = false, $pass_key = null)
+    {
+        $out   = '';
+        $index = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $base  = strlen($index);
+
+        if ($pass_key !== null)
+        {
+            // Although this function's purpose is to just make the
+            // ID short - and not so much secure,
+            // with this patch by Simon Franz (http://blog.snaky.org/)
+            // you can optionally supply a password to make it harder
+            // to calculate the corresponding numeric ID
+
+            for ($n = 0; $n < strlen($index); $n++)
+            {
+                $i[] = substr($index, $n, 1);
+            }
+
+            $pass_hash = hash('sha256', $pass_key);
+            $pass_hash = (strlen($pass_hash) < strlen($index) ? hash('sha512', $pass_key) : $pass_hash);
+
+            for ($n = 0; $n < strlen($index); $n++)
+            {
+                $p[] = substr($pass_hash, $n, 1);
+            }
+
+            array_multisort($p, SORT_DESC, $i);
+            $index = implode($i);
+        }
+
+        if ($to_num)
+        {
+            // Digital number  <<--  alphabet letter code
+            $len = strlen($in) - 1;
+
+            for ($t = $len; $t >= 0; $t--)
+            {
+                $bcp = bcpow($base, $len - $t);
+                $out = $out + strpos($index, substr($in, $t, 1)) * $bcp;
+            }
+
+            if (is_numeric($pad_up))
+            {
+                $pad_up--;
+
+                if ($pad_up > 0)
+                {
+                    $out -= pow($base, $pad_up);
+                }
+            }
+        }
+        else
+        {
+            // Digital number  -->>  alphabet letter code
+            if (is_numeric($pad_up))
+            {
+                $pad_up--;
+
+                if ($pad_up > 0)
+                {
+                    $in += pow($base, $pad_up);
+                }
+            }
+
+            for ($t = ($in != 0 ? floor(log($in, $base)) : 0); $t >= 0; $t--)
+            {
+                $bcp = bcpow($base, $t);
+                $a   = floor($in / $bcp) % $base;
+                $out = $out . substr($index, $a, 1);
+                $in  = $in - ($a * $bcp);
+            }
+        }
+
+        return $out;
     }
 }
