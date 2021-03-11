@@ -168,6 +168,7 @@ class RootController extends BaseController
      * @param  bool      $return_json
      *
      * @return array|Builder[]|Collection|JsonResponse
+     * @throws \Exception
      */
     protected function page(array $input, Model $model, callable $cb = null, $return_json = true)
     {
@@ -185,7 +186,9 @@ class RootController extends BaseController
 
         if (0 == $_limit)
         {
-            return $this->success($model->get());
+            $result = $model->get();
+
+            return $return_json ? $this->success($result) : $result;
         }
 
         $_limit   = (int) $_limit ?: 20;
