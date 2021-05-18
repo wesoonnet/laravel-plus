@@ -199,7 +199,7 @@ class UtilService
      */
     public static function no()
     {
-        return date('YmdHis') . self::uniqid();
+        return str_pad(date('YmdHis') . self::uniqid(), 25, "0");
     }
 
     /**
