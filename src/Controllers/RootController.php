@@ -170,7 +170,7 @@ class RootController extends BaseController
      * @return array|Builder[]|Collection|JsonResponse
      * @throws \Exception
      */
-    protected function page(array $input, Model $model, callable $cb = null, $return_json = true)
+    protected function page(array $input, Model $model, callable $cb = null, $return_json = false)
     {
         // 解析查询参数
         $model = $this->parseQuery($input, $model);
