@@ -21,11 +21,11 @@ class SmsService
         $clientProfile = new ClientProfile();
         $clientProfile->setSignMethod("TC3-HMAC-SHA256");
         $clientProfile->setHttpProfile($httpProfile);
-        $client                = new SmsClient($cred, "ap-shanghai", $clientProfile);
+        $client                = new SmsClient($cred, "ap-guangzhou", $clientProfile);
         $req                   = new SendSmsRequest();
-        $req->SmsSdkAppid      = $appId;
-        $req->Sign             = $sign;
-        $req->PhoneNumberSet   = ["+86{$mobile}}"];
+        $req->SmsSdkAppId      = $appId;
+        $req->SignName         = $sign;
+        $req->PhoneNumberSet   = ["+86{$mobile}"];
         $req->SessionContext   = $sessionContent;
         $req->TemplateId       = $templateId;
         $req->TemplateParamSet = $templateParams;
