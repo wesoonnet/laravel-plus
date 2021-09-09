@@ -98,8 +98,6 @@ class ObjectService
      * @param          $secretKey
      * @param          $bucket
      * @param          $key
-     * @param          $saveAs
-     * @param  array   $options
      * @param  string  $region
      *
      * @return bool|\Exception
