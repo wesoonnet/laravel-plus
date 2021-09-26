@@ -162,15 +162,15 @@ class RootController extends BaseController
     /**
      * 解析URL查询参数
      *
-     * @param  array     $input
-     * @param  Model     $model
-     * @param  callable  $cb
-     * @param  bool      $return_json
+     * @param  array          $input
+     * @param  Model          $model
+     * @param  callable|null  $cb
+     * @param  bool           $return_json
      *
      * @return array|Builder[]|Collection|JsonResponse
      * @throws \Exception
      */
-    protected function page(array $input, Model $model, callable $cb = null, $return_json = false)
+    protected function page(array $input, Model $model, callable $cb = null, bool $return_json = true)
     {
         // 解析查询参数
         $model = $this->parseQuery($input, $model);
