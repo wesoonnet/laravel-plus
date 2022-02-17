@@ -117,9 +117,67 @@ class ObjectService
                 ]);
 
             $cosClient->deleteObject([
-                'Bucket'    => $bucket,
-                'Key'       => $key,
+                'Bucket' => $bucket,
+                'Key'    => $key,
             ]);
+
+            return true;
+        }
+        catch (\Exception $e)
+        {
+            return $e;
+        }
+    }
+
+    /**
+     * 移动文件
+     *
+     * @param          $secretId
+     * @param          $secretKey
+     * @param          $bucket
+     * @param          $targetKey
+     * @param          $sourceKey
+     * @param  bool    $deleteSource
+     * @param  string  $region
+     *
+     * @return bool|\Exception
+     */
+    public static function copy($secretId, $secretKey, $bucket, $targetKey, $sourceKey, $deleteSource = false, $region = 'ap-chengdu')
+    {
+        try
+        {
+            $cosClient = new Client(
+                [
+                    'region'      => $region,
+                    'schema'      => 'https',
+                    'credentials' => [
+                        'secretId'  => $secretId,
+                        'secretKey' => $secretKey,
+                    ],
+                ]
+            );
+
+            $cosClient->copy(
+                [
+                    'Bucket'     => $bucket,
+                    'Key'        => $targetKey,
+                    'copySource' => [
+                        'Region' => $region,
+                        'Bucket' => $bucket,
+                        'Key'    => $sourceKey,
+                    ],
+                ]
+            );
+
+            if ($deleteSource)
+            {
+                $cosClient->deleteObject(
+                    [
+                        'Bucket' => $bucket,
+                        'Key'    => $sourceKey,
+                    ]
+                );
+            }
 
             return true;
         }
