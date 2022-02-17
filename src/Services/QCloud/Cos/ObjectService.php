@@ -129,6 +129,7 @@ class ObjectService
         }
     }
 
+
     /**
      * 移动文件
      *
@@ -157,17 +158,11 @@ class ObjectService
                 ]
             );
 
-            $cosClient->copy(
-                [
-                    'Bucket'     => $bucket,
-                    'Key'        => $targetKey,
-                    'copySource' => [
-                        'Region' => $region,
-                        'Bucket' => $bucket,
-                        'Key'    => $sourceKey,
-                    ],
-                ]
-            );
+            $cosClient->copy($bucket, $targetKey, [
+                'Region' => $region,
+                'Bucket' => $bucket,
+                'Key'    => $sourceKey,
+            ]);
 
             if ($deleteSource)
             {
