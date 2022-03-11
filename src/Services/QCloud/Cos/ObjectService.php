@@ -3,7 +3,9 @@
 namespace WeSoonNet\LaravelPlus\Services\QCloud\Cos;
 
 
+use Exception;
 use Qcloud\Cos\Client;
+use Qcloud\Cos\Exception\ServiceResponseException;
 
 class ObjectService
 {
@@ -18,7 +20,8 @@ class ObjectService
      * @param  array   $options
      * @param  string  $region
      *
-     * @return bool|\Exception
+     * @return object
+     * @throws Exception
      */
     public static function upload($secretId, $secretKey, $bucket, $key, $body, $options = [], $region = 'ap-chengdu')
     {
@@ -34,18 +37,11 @@ class ObjectService
                     ],
                 ]);
 
-            $cosClient->upload(
-                $bucket,
-                $key,
-                $body,
-                $options
-            );
-
-            return true;
+            return $cosClient->upload($bucket, $key, $body, $options);
         }
-        catch (\Exception $e)
+        catch (ServiceResponseException $e)
         {
-            return $e;
+            throw  new \Exception($e->getMessage());
         }
     }
 
@@ -60,7 +56,7 @@ class ObjectService
      * @param  array   $options
      * @param  string  $region
      *
-     * @return bool|\Exception
+     * @throws Exception
      */
     public static function download($secretId, $secretKey, $bucket, $key, $saveAs, $options = [], $region = 'ap-chengdu')
     {
@@ -76,18 +72,11 @@ class ObjectService
                     ],
                 ]);
 
-            $cosClient->download(
-                $bucket,
-                $key,
-                $saveAs,
-                $options
-            );
-
-            return true;
+            return $cosClient->download($bucket, $key, $saveAs, $options);
         }
-        catch (\Exception $e)
+        catch (ServiceResponseException $e)
         {
-            return $e;
+            throw  new \Exception($e->getMessage());
         }
     }
 
@@ -100,7 +89,7 @@ class ObjectService
      * @param          $key
      * @param  string  $region
      *
-     * @return bool|\Exception
+     * @throws Exception
      */
     public static function delete($secretId, $secretKey, $bucket, $key, $region = 'ap-chengdu')
     {
@@ -116,16 +105,14 @@ class ObjectService
                     ],
                 ]);
 
-            $cosClient->deleteObject([
+            return $cosClient->deleteObject([
                 'Bucket' => $bucket,
                 'Key'    => $key,
             ]);
-
-            return true;
         }
-        catch (\Exception $e)
+        catch (ServiceResponseException $e)
         {
-            return $e;
+            throw  new \Exception($e->getMessage());
         }
     }
 
@@ -141,7 +128,8 @@ class ObjectService
      * @param  bool    $deleteSource
      * @param  string  $region
      *
-     * @return bool|\Exception
+     * @return Exception
+     * @throws Exception
      */
     public static function copy($secretId, $secretKey, $bucket, $targetKey, $sourceKey, $deleteSource = false, $region = 'ap-chengdu')
     {
@@ -158,7 +146,7 @@ class ObjectService
                 ]
             );
 
-            $cosClient->copy($bucket, $targetKey, [
+            $result = $cosClient->copy($bucket, $targetKey, [
                 'Region' => $region,
                 'Bucket' => $bucket,
                 'Key'    => $sourceKey,
@@ -174,11 +162,11 @@ class ObjectService
                 );
             }
 
-            return true;
+            return $result;
         }
-        catch (\Exception $e)
+        catch (ServiceResponseException $e)
         {
-            return $e;
+            throw  new \Exception($e->getMessage());
         }
     }
 }

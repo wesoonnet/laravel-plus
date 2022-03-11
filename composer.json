@@ -20,5 +20,11 @@
         "psr-4": {
             "WeSoonNet\\LaravelPlus\\": "src/"
         }
+    },
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://mirrors.aliyun.com/composer/"
+        }
     }
 }
