@@ -219,11 +219,6 @@ class RootController extends BaseController
         if ($cb)
         {
             $model = $cb($model);
-
-            if (!($model instanceof Model))
-            {
-                throw new \Exception('The callback needs to return the model object.');
-            }
         }
 
         // 排序预存
