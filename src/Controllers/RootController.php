@@ -18,8 +18,9 @@ class RootController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    private $_query_params = [];
-    private $_query_rules  = [];
+    private $_query_params    = [];
+    private $_query_rules     = [];
+    private $_exclude_filters = [];
 
     /**
      * 返回成功消息
@@ -136,6 +137,17 @@ class RootController extends BaseController
     protected function pushQuery(string $type, array $query)
     {
         $this->_query_params[$type] = $query;
+    }
+
+    /**
+     * 排除查询字段
+     *
+     * @param  string  $type
+     * @param  array   $query
+     */
+    protected function excludeFilter(array $fields)
+    {
+        $this->_exclude_filters = $fields;
     }
 
     /**
@@ -452,15 +464,29 @@ class RootController extends BaseController
                 $_filter_group[] = $_item;
             }
         }
+
+        $_filter_group       = array_filter($_filter_group);
         $_filter_group_array = [];
+
+        if (!empty($this->_exclude_filters) && empty($_filter_group))
+        {
+            throw new \Exception('必须设置查询参数');
+        }
+
         foreach ($_filter_group as $item)
         {
-            if ($item)
+            // 排除查询
+            if ($item && !in_array($item, $this->_exclude_filters))
             {
                 $_filter_group_array[] = $item;
             }
         }
-        $model = $model->addSelect($_filter_group_array);
+
+        if (!empty($_filter_group_array))
+        {
+            $model = $model->addSelect($_filter_group_array);
+        }
+
 
         //////////////////////////////////////////////////////////////
         // 解析包含关系
