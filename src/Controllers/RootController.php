@@ -631,6 +631,28 @@ class RootController extends BaseController
                                         case 'notnull':
                                             $query->whereNotNull($_f);
                                             break;
+
+                                        case 'between':
+                                            $_v = urldecode($_v);
+                                            $_v = explode(',', $_v);
+
+                                            if (2 === count($_v))
+                                            {
+                                                $query->whereBetween($_f, $_v);
+                                            }
+                                            break;
+
+                                        case 'between_datetime':
+                                            $_v = urldecode($_v);
+                                            $_v = explode(',', $_v);
+
+                                            if (2 === count($_v))
+                                            {
+                                                $_v[0] = date('Y-m-d H:i:s', $_v[0]);
+                                                $_v[1] = date('Y-m-d H:i:s', $_v[1]);
+                                                $query->whereBetween($_f, $_v);
+                                            }
+                                            break;
                                     }
                                 }
                             },
