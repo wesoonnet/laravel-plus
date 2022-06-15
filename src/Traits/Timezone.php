@@ -9,22 +9,22 @@ trait Timezone
 {
     public function getCreatedAtAttribute($value)
     {
-        return Carbon::createFromTimestamp(strtotime($value))
+        return $value ? Carbon::createFromTimestamp(strtotime($value))
             ->timezone('Asia/Shanghai')
-            ->toDateTimeString();
+            ->toDateTimeString() : $value;
     }
 
     public function getUpdatedAtAttribute($value)
     {
-        return Carbon::createFromTimestamp(strtotime($value))
+        return $value ? Carbon::createFromTimestamp(strtotime($value))
             ->timezone('Asia/Shanghai')
-            ->toDateTimeString();
+            ->toDateTimeString() : $value;
     }
 
     public function getDeletedAtAttribute($value)
     {
-        return Carbon::createFromTimestamp(strtotime($value))
+        return $value ? Carbon::createFromTimestamp(strtotime($value))
             ->timezone('Asia/Shanghai')
-            ->toDateTimeString();
+            ->toDateTimeString() : $value;
     }
 }

@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class RootController extends BaseController
 {
@@ -55,6 +56,20 @@ class RootController extends BaseController
             'message' => $message,
             'code'    => $code,
         ], $status);
+    }
+
+    /**
+     * Exception error
+     *
+     * @param  Throwable  $e
+     *
+     * @return JsonResponse
+     */
+    protected function error(Throwable $e)
+    {
+        report($e);
+
+        return $this->failure(config('app.debug') ? $e->getMessage() : 'Server Error', 500, 500);
     }
 
     /**
