@@ -14,7 +14,7 @@
         "ext-gd": "*",
         "intervention/image": "^2.5",
         "tencentcloud/tencentcloud-sdk-php": "^3.0",
-        "qcloud/cos-sdk-v5": "^2.0"
+        "qcloud/cos-sdk-v5": "^2.5"
     },
     "autoload": {
         "psr-4": {
