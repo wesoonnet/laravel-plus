@@ -23,14 +23,13 @@ class ObjectService
      * @return object
      * @throws Exception
      */
-    public static function upload($secretId, $secretKey, $bucket, $key, $body, $options = [], $region = 'ap-chengdu')
-    {
-        try
-        {
+    public static function upload($secretId, $secretKey, $bucket, $key, $body, $options = [], $region = 'ap-chengdu') {
+        try {
             $cosClient = new Client(
                 [
                     'region'      => $region,
                     'schema'      => 'https',
+                    'signHost'    => true,
                     'credentials' => [
                         'secretId'  => $secretId,
                         'secretKey' => $secretKey,
@@ -38,9 +37,7 @@ class ObjectService
                 ]);
 
             return $cosClient->upload($bucket, $key, $body, $options);
-        }
-        catch (ServiceResponseException $e)
-        {
+        } catch (ServiceResponseException $e) {
             throw  new \Exception($e->getMessage());
         }
     }
@@ -58,14 +55,13 @@ class ObjectService
      *
      * @throws Exception
      */
-    public static function download($secretId, $secretKey, $bucket, $key, $saveAs, $options = [], $region = 'ap-chengdu')
-    {
-        try
-        {
+    public static function download($secretId, $secretKey, $bucket, $key, $saveAs, $options = [], $region = 'ap-chengdu') {
+        try {
             $cosClient = new Client(
                 [
                     'region'      => $region,
                     'schema'      => 'https',
+                    'signHost'    => true,
                     'credentials' => [
                         'secretId'  => $secretId,
                         'secretKey' => $secretKey,
@@ -73,9 +69,7 @@ class ObjectService
                 ]);
 
             return $cosClient->download($bucket, $key, $saveAs, $options);
-        }
-        catch (ServiceResponseException $e)
-        {
+        } catch (ServiceResponseException $e) {
             throw  new \Exception($e->getMessage());
         }
     }
@@ -91,14 +85,13 @@ class ObjectService
      *
      * @throws Exception
      */
-    public static function delete($secretId, $secretKey, $bucket, $key, $region = 'ap-chengdu')
-    {
-        try
-        {
+    public static function delete($secretId, $secretKey, $bucket, $key, $region = 'ap-chengdu') {
+        try {
             $cosClient = new Client(
                 [
                     'region'      => $region,
                     'schema'      => 'https',
+                    'signHost'    => true,
                     'credentials' => [
                         'secretId'  => $secretId,
                         'secretKey' => $secretKey,
@@ -109,9 +102,7 @@ class ObjectService
                 'Bucket' => $bucket,
                 'Key'    => $key,
             ]);
-        }
-        catch (ServiceResponseException $e)
-        {
+        } catch (ServiceResponseException $e) {
             throw  new \Exception($e->getMessage());
         }
     }
@@ -131,14 +122,13 @@ class ObjectService
      * @return Exception
      * @throws Exception
      */
-    public static function copy($secretId, $secretKey, $bucket, $targetKey, $sourceKey, $deleteSource = false, $region = 'ap-chengdu')
-    {
-        try
-        {
+    public static function copy($secretId, $secretKey, $bucket, $targetKey, $sourceKey, $deleteSource = false, $region = 'ap-chengdu') {
+        try {
             $cosClient = new Client(
                 [
                     'region'      => $region,
                     'schema'      => 'https',
+                    'signHost'    => true,
                     'credentials' => [
                         'secretId'  => $secretId,
                         'secretKey' => $secretKey,
@@ -152,8 +142,7 @@ class ObjectService
                 'Key'    => $sourceKey,
             ]);
 
-            if ($deleteSource)
-            {
+            if ($deleteSource) {
                 $cosClient->deleteObject(
                     [
                         'Bucket' => $bucket,
@@ -163,9 +152,7 @@ class ObjectService
             }
 
             return $result;
-        }
-        catch (ServiceResponseException $e)
-        {
+        } catch (ServiceResponseException $e) {
             throw  new \Exception($e->getMessage());
         }
     }

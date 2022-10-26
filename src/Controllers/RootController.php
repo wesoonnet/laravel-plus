@@ -82,9 +82,9 @@ class RootController extends BaseController
     protected function done($response_obj)
     {
         return Response()->json([
-            'success' => $response_obj->success,
-            'message' => $response_obj->message,
-            'code'    => $response_obj->code,
+            'success' => $response_obj?->success,
+            'message' => $response_obj?->message,
+            'code'    => $response_obj?->code,
         ]);
     }
 
