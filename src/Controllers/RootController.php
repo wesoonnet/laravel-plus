@@ -27,25 +27,32 @@ class RootController extends BaseController
      * 返回成功消息
      *
      * @param          $message
-     * @param  string  $code
+     * @param string   $code
      *
      * @return JsonResponse
      */
     protected function success($message = '', $code = '')
     {
-        return Response()->json([
+        $response = [
             'success' => true,
             'message' => $message,
             'code'    => $code,
-        ]);
+        ];
+
+        if (config('app.debug'))
+        {
+            $response['debug']['sql'] = config('__debug_sql__', []);
+        }
+
+        return Response()->json($response);
     }
 
     /**
      * 返回失败消息
      *
-     * @param  string  $message
-     * @param  string  $code
-     * @param  int     $status
+     * @param string $message
+     * @param string $code
+     * @param int    $status
      *
      * @return JsonResponse
      */
@@ -61,7 +68,7 @@ class RootController extends BaseController
     /**
      * Exception error
      *
-     * @param  Throwable  $e
+     * @param Throwable $e
      *
      * @return JsonResponse
      */
@@ -82,9 +89,9 @@ class RootController extends BaseController
     protected function done($response_obj)
     {
         return Response()->json([
-            'success' => $response_obj?->success,
-            'message' => $response_obj?->message,
-            'code'    => $response_obj?->code,
+            'success' => $response_obj->success,
+            'message' => $response_obj->message,
+            'code'    => $response_obj->code,
         ]);
     }
 
@@ -106,12 +113,13 @@ class RootController extends BaseController
      * @param $data
      * @param $rules
      * @param $messages
+     * @param $attributes
      *
      * @return bool|string
      */
-    protected function validator($data, $rules, $messages)
+    protected function validator($data, $rules, $messages, $attributes = [])
     {
-        $validator = Validator::make($data, $rules, $messages);
+        $validator = Validator::make($data, $rules, $messages, $attributes);
 
         if ($validator->fails())
         {
@@ -124,7 +132,7 @@ class RootController extends BaseController
     /**
      * 当前登录用户ID
      *
-     * @param  null  $guard
+     * @param null $guard
      *
      * @return null
      */
@@ -146,8 +154,8 @@ class RootController extends BaseController
     /**
      * 插入查询参数
      *
-     * @param  string  $type
-     * @param  array   $query
+     * @param string $type
+     * @param array  $query
      */
     protected function pushQuery(string $type, array $query)
     {
@@ -157,8 +165,8 @@ class RootController extends BaseController
     /**
      * 排除查询字段
      *
-     * @param  string  $type
-     * @param  array   $query
+     * @param string $type
+     * @param array  $query
      */
     protected function excludeFilter(array $fields)
     {
@@ -168,10 +176,10 @@ class RootController extends BaseController
     /**
      * 设置需要验证的查询参数
      *
-     * @param  string  $type
-     * @param  string  $field
-     * @param  string  $rule
-     * @param  string  $message
+     * @param string $type
+     * @param string $field
+     * @param string $rule
+     * @param string $message
      */
     protected function ruleQuery(string $type, string $field, string $rule = 'required', string $message = '缺少参数')
     {
@@ -189,10 +197,10 @@ class RootController extends BaseController
     /**
      * 解析URL查询参数
      *
-     * @param  array          $input
-     * @param  Model          $model
-     * @param  callable|null  $cb
-     * @param  bool           $return_json
+     * @param array         $input
+     * @param Model         $model
+     * @param callable|null $cb
+     * @param bool          $return_json
      *
      * @return array|Builder[]|Collection|JsonResponse
      * @throws \Exception
@@ -200,13 +208,7 @@ class RootController extends BaseController
     protected function page(array $input, Model $model, callable $cb = null, bool $return_json = true)
     {
         // 解析查询参数
-        $model = $this->parseQuery($input, $model);
-
-        // 回调
-        if ($cb)
-        {
-            $model = $cb($model);
-        }
+        $model = $this->parseQuery($input, $model, $cb);
 
         // 解析分页
         $_limit = $input['limit'] ?? 0;
@@ -218,7 +220,7 @@ class RootController extends BaseController
             return $return_json ? $this->success($result) : $result;
         }
 
-        $_limit   = (int) $_limit ?: 20;
+        $_limit   = (int)$_limit ?: 20;
         $paginate = $model->paginate($_limit);
         $result   = [
             'total'        => $paginate->total() ?: 0,
@@ -233,21 +235,15 @@ class RootController extends BaseController
     /**
      * 解析URL查询参数
      *
-     * @param  array          $input  请求对象
-     * @param  Model          $model  数据模型
-     * @param  callable|null  $cb     回调处理
+     * @param array         $input 请求对象
+     * @param Model         $model 数据模型
+     * @param callable|null $cb    回调处理
      *
      * @return Builder|Model
      * @throws \Exception
      */
     protected function parseQuery(array $input, Model $model, callable $cb = null)
     {
-        // 回调
-        if ($cb)
-        {
-            $model = $cb($model);
-        }
-
         // 排序预存
         $OrderByArray = [];
 
@@ -737,6 +733,19 @@ class RootController extends BaseController
                 {
                     $model = $model->inRandomOrder();
                 }
+            }
+        }
+
+        // 回调
+        if ($cb)
+        {
+            if ($model instanceof Builder)
+            {
+                $model = $cb($model);
+            }
+            else
+            {
+                $model = $cb($model->query());
             }
         }
 
