@@ -386,6 +386,10 @@ class RootController extends BaseController
                                 $query->where($_with_field, $_value);
                             });
                         }
+                        else
+                        {
+                            $model = $model->whereHas($_field);
+                        }
                         break;
 
                     case 'has_like':

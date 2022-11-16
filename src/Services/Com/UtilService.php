@@ -197,9 +197,9 @@ class UtilService
      *
      * @return string
      */
-    public static function no()
+    public static function no(string $date_format = 'Ymd', int $length = 18)
     {
-        return str_pad(date('YmdHis') . self::uniqid(), 25, "0");
+        return str_pad(date('Ymd') . self::uniqid(), 18, "0");
     }
 
     /**
