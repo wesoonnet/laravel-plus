@@ -13,7 +13,7 @@ class SignService
      *
      * @return string
      */
-    public static function generate(array $data, string $key)
+    public static function generate(array $data, string $key): string
     {
         if (isset($data['sign']))
         {
@@ -27,7 +27,7 @@ class SignService
             $data[$k] = (string) $v;
         }
 
-        return md5(sha1(json_encode($data) . $key));
+        return md5(sha1(json_encode($data, JSON_UNESCAPED_SLASHES) . $key));
     }
 
     /**
@@ -38,8 +38,8 @@ class SignService
      *
      * @return bool
      */
-    public static function verify(array $data, string $key)
+    public static function verify(array $data, string $key): bool
     {
-        return isset($data['sign']) ? ($data['sign'] === self::generate($data, $key)) : false;
+        return isset($data['sign']) && ($data['sign'] === self::generate($data, $key));
     }
 }
