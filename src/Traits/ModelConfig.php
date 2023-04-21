@@ -14,7 +14,7 @@ trait ModelConfig
 {
     public function initializeModelConfig()
     {
-        $guarded       = ['created_at', 'updated_at'];
+        $guarded       = $this->timestamps ? ['created_at', 'updated_at'] : ['deleted_at'];
         $this->guarded = (property_exists($this, 'guarded')) ? array_merge($this->guarded, $guarded) : $guarded;
 
         $hidden       = ['pivot'];
