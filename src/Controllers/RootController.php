@@ -19,9 +19,9 @@ class RootController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    private $_query_params    = [];
-    private $_query_rules     = [];
-    private $_exclude_filters = [];
+    private array $_query_params    = [];
+    private array $_required_search = [];
+    private array $_exclude_filters = [];
 
     /**
      * 返回成功消息
@@ -165,8 +165,7 @@ class RootController extends BaseController
     /**
      * 排除查询字段
      *
-     * @param string $type
-     * @param array  $query
+     * @param array $fields
      */
     protected function excludeFilter(array $fields)
     {
@@ -174,24 +173,15 @@ class RootController extends BaseController
     }
 
     /**
-     * 设置需要验证的查询参数
+     * 设置必填搜索字段
      *
-     * @param string $type
      * @param string $field
-     * @param string $rule
-     * @param string $message
+     *
+     * @return void
      */
-    protected function ruleQuery(string $type, string $field, string $rule = 'required', string $message = '缺少参数')
+    protected function setRequiredSearch(string $field): void
     {
-        $this->_query_rules[$type][$field] = function () use ($field, $rule, $message)
-        {
-            if (true !== ($error = $this->validator([$field], [$field => $rule], ["{$field}.{$rule}" => $message])))
-            {
-                return $this->failure($error, 'VALIDATION_FAIL');
-            }
-
-            return true;
-        };
+        $this->_required_search[] = $field;
     }
 
     /**
@@ -297,26 +287,39 @@ class RootController extends BaseController
                 $_search_group[] = $_item;
             }
         }
+
+        // 最后生成的查询条件
+        $_search_data = [];
+
         foreach ($_search_group as $_group)
         {
             if ($_group)
             {
                 $count = substr_count($_group, ':');
-                if (2 === $count)
+
+                // 自定义逻辑
+                $is_or = false;
+
+                if (3 === $count)
+                {
+                    [$_field, $_value, $_rule, $_logic] = explode(':', $_group);
+                    if ('or' === $_logic)
+                    {
+                        $is_or = true;
+                    }
+                }
+                else if (2 === $count)
                 {
                     [$_field, $_value, $_rule] = explode(':', $_group);
                 }
+                else if (1 === $count)
+                {
+                    [$_field, $_value] = explode(':', $_group);
+                    $_rule = '=';
+                }
                 else
                 {
-                    if (1 === $count)
-                    {
-                        [$_field, $_value] = explode(':', $_group);
-                        $_rule = '=';
-                    }
-                    else
-                    {
-                        continue;
-                    }
+                    continue;
                 }
 
                 // 空值处理
@@ -346,27 +349,27 @@ class RootController extends BaseController
                             }
                             else
                             {
-                                $model = $model->where($_field, $_value);
+                                $model = $is_or ? $model->orWhere($_field, $_value) : $model->where($_field, $_value);
                             }
                         }
                         break;
 
                     case 'like':
-                        $_value = (false === strpos($_value, '%')) ? "%{$_value}%" : $_value;
+                        $_value = (!str_contains($_value, '%')) ? "%{$_value}%" : $_value;
                         if ($with_obj)
                         {
                             $SearchArray[$with_obj][] = ['like', $_with_field, $_value];
                         }
                         else
                         {
-                            $model = $model->where($_field, 'like', $_value);
+                            $model = $is_or ? $model->orWhere($_field, 'like', $_value) : $model->where($_field, 'like', $_value);
                         }
                         break;
 
                     case 'in':
                         if (!is_array($_value))
                         {
-                            $_value = (false === strpos($_value, ',')) ? [$_value] : explode(',', $_value);
+                            $_value = (!str_contains($_value, ',')) ? [$_value] : explode(',', $_value);
                         }
                         if ($with_obj)
                         {
@@ -374,7 +377,7 @@ class RootController extends BaseController
                         }
                         else
                         {
-                            $model = $model->whereIn($_field, $_value);
+                            $model = $is_or ? $model->orWhereIn($_field, $_value) : $model->whereIn($_field, $_value);
                         }
                         break;
 
@@ -397,7 +400,7 @@ class RootController extends BaseController
                         {
                             $model = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
                             {
-                                $_value = (false === strpos($_value, '%')) ? "%{$_value}%" : $_value;
+                                $_value = (!str_contains($_value, '%')) ? "%{$_value}%" : $_value;
                                 $query->where($_with_field, 'like', "%{$_value}%");
                             });
                         }
@@ -411,6 +414,17 @@ class RootController extends BaseController
                         else
                         {
                             $model = $model->whereNotNull($_field);
+                        }
+                        break;
+
+                    case 'isnull':
+                        if ($with_obj)
+                        {
+                            $SearchArray[$with_obj][] = ['isnull', $_with_field, $_value];
+                        }
+                        else
+                        {
+                            $model = $model->whereNull($_field);
                         }
                         break;
 
@@ -459,10 +473,21 @@ class RootController extends BaseController
                             }
                             else
                             {
-                                $model = $model->where($_field, $_rule, $_value);
+                                $model = $is_or ? $model->orWhere($_field, $_rule, $_value) : $model->where($_field, $_rule, $_value);
                             }
                         }
                 }
+
+                $_search_data[$_field] = $_value;
+            }
+        }
+
+        // 如果查询条件不存在必填选项则报错
+        foreach ($this->_required_search as $f)
+        {
+            if (!in_array($f, array_keys($_search_data)) || strlen($_search_data[$f]) == 0)
+            {
+                throw new \InvalidArgumentException("缺少 $f 参数");
             }
         }
 
@@ -588,6 +613,10 @@ class RootController extends BaseController
                                             $model = $model->whereNotNull($_f);
                                             break;
 
+                                        case 'isnull':
+                                            $model = $model->whereNull($_f);
+                                            break;
+
                                         case 'between':
 
                                             $_v = urldecode($_v);
@@ -645,6 +674,10 @@ class RootController extends BaseController
 
                                         case 'notnull':
                                             $query->whereNotNull($_f);
+                                            break;
+
+                                        case 'isnull':
+                                            $query->whereNull($_f);
                                             break;
 
                                         case 'between':
