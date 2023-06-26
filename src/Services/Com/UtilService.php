@@ -12,7 +12,7 @@ class UtilService
     /**
      * html文本相对路径替换成绝对路径
      *
-     * @param string $html HTML
+     * @param  string  $html  HTML
      *
      * @return mixed|string
      */
@@ -47,7 +47,7 @@ class UtilService
     /**
      * html绝对路径替换成相对路径
      *
-     * @param string $html
+     * @param  string  $html
      *
      * @return mixed|string
      */
@@ -83,7 +83,7 @@ class UtilService
     /**
      * 上传文件到临时目录
      *
-     * @param UploadedFile $file
+     * @param  UploadedFile  $file
      *
      * @return UploadedFile|string
      * @throws \Exception
@@ -111,8 +111,8 @@ class UtilService
     /**
      * 移动HTML的临时图片文件到指定目录
      *
-     * @param string $html   HTML
-     * @param string $newDir 目录路径（相对）
+     * @param  string  $html    HTML
+     * @param  string  $newDir  目录路径（相对）
      *
      * @return string HTML
      */
@@ -149,8 +149,8 @@ class UtilService
     /**
      * 移动文件到目录
      *
-     * @param string $file
-     * @param string $newFile
+     * @param  string  $file
+     * @param  string  $newFile
      *
      * @return string
      */
@@ -215,8 +215,8 @@ class UtilService
     /**
      * 生成唯一数字序号
      *
-     * @param string $key
-     * @param int    $start
+     * @param  string  $key
+     * @param  int     $start
      *
      * @return int|mixed
      */
@@ -230,7 +230,7 @@ class UtilService
         }
         else
         {
-            $start = ((int)Cache::get($key)) + 1;
+            $start = ((int) Cache::get($key)) + 1;
 
             Cache::set($key, $start);
         }
@@ -241,8 +241,8 @@ class UtilService
     /**
      * 随机字符串
      *
-     * @param int  $length
-     * @param bool $containNumber
+     * @param  int   $length
+     * @param  bool  $containNumber
      *
      * @return string
      */
@@ -255,7 +255,7 @@ class UtilService
     /**
      * 当前路由前缀名
      *
-     * @param null $prefix
+     * @param  null  $prefix
      *
      * @return string
      */
@@ -285,6 +285,7 @@ class UtilService
      *  下载文件
      *
      * @param $url
+     * @param $file
      *
      * @return bool|string
      */
@@ -318,23 +319,23 @@ class UtilService
      *
      * 金额格式化
      *
-     * @param int $price   传入金额单位分
-     * @param int $decimal 保留小数位数
+     * @param  int  $price    传入金额单位分
+     * @param  int  $decimal  保留小数位数
      *
      * @return float
      */
     public static function priceFormat($price, $decimal = 2)
     {
-        return (float)round(((int)$price / 100), $decimal);
+        return (float) round(((int) $price / 100), $decimal);
     }
 
     /**
      * 字符串加掩码
      *
      * @param          $var
-     * @param int      $start
-     * @param int      $length
-     * @param string   $char
+     * @param  int     $start
+     * @param  int     $length
+     * @param  string  $char
      *
      * @return mixed
      */
@@ -356,7 +357,7 @@ class UtilService
         $rules   = [
             'username' => "/^\w{4,16}$/i",
             'password' => "/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,16}$/",
-            'captcha'  => "/^[0-9]{4}$/",
+            'captcha'  => "/^[0-9]{4,6}$/",
             'mobile'   => "/^1[0123456789][0-9]{9}$/",
             'email'    => "/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$/i",
         ];
@@ -386,7 +387,7 @@ class UtilService
     /**
      * 格式化成过去时间
      *
-     * @param int $time
+     * @param  int  $time
      *
      * @return string
      */
@@ -404,7 +405,7 @@ class UtilService
         ];
         foreach ($f as $k => $v)
         {
-            if (0 != $c = floor($t / (int)$k))
+            if (0 != $c = floor($t / (int) $k))
             {
                 return $v ? ($c . $v . '前') : '刚刚';
             }
@@ -415,9 +416,9 @@ class UtilService
      * 数字转字母ID
      *
      * @param        $in
-     * @param bool   $to_num
-     * @param bool   $pad_up
-     * @param null   $pass_key
+     * @param  bool  $to_num
+     * @param  bool  $pad_up
+     * @param  null  $pass_key
      *
      * @return float|int|string
      */
@@ -496,18 +497,5 @@ class UtilService
         }
 
         return $out;
-    }
-
-    /**
-     * 是否是手机号
-     *
-     * @param $mobileNumber
-     *
-     * @return false|int
-     */
-    public static function isMobile($mobileNumber)
-    {
-        $pattern = '/^1(3[0-9]|4[579]|5[0-35-9]|6[56]|7[0135678]|8[0-9]|9[89])\d{8}$/';
-        return preg_match($pattern, $mobileNumber);
     }
 }
