@@ -406,6 +406,16 @@ class RootController extends BaseController
                         }
                         break;
 
+                    case 'has_in':
+                        if ($_value)
+                        {
+                            $model = $model->whereHas($with_obj, function ($query) use ($_with_field, $_value)
+                            {
+                                $query->whereIn($_with_field, explode(",", $_value));
+                            });
+                        }
+                        break;
+
                     case 'notnull':
                         if ($with_obj)
                         {
