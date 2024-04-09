@@ -291,7 +291,7 @@ class RootController extends BaseController
         {
             throw new \InvalidArgumentException("缺少查询过滤参数");
         }
-        print_r($input['filter']);
+
         if (isset($input['filter']) && !empty($input['filter']))
         {
             $model = $this->parseFilter($model, $input['filter']);
