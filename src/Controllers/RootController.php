@@ -20,13 +20,14 @@ class RootController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    private array $_query_params    = [];       // 查询参数
-    private array $_required_search = [];       // 搜索的必要字段
-    private array $_only_filters    = [];       // 只允许获取的字段
-    private array $_exclude_filters = [];       // 不允许获取的字段
-    private int   $_max_limit       = 50;       // 最大获取记录数
-    private array $_orderByArray    = [];       // 排序预存
-    private array $_searchArray     = [];       // 搜索预存
+    private array $_query_params         = [];       // 查询参数
+    private array $_required_search      = [];       // 搜索的必要字段
+    private array $_only_filters         = [];       // 只允许获取的字段
+    private array $_only_include_filters = [];       // 只允许 include 获取的字段 ['name' => ['field1', 'field2']
+    private array $_exclude_filters      = [];       // 不允许获取的字段
+    private int   $_max_limit            = 50;       // 最大获取记录数
+    private array $_orderByArray         = [];       // 排序预存
+    private array $_searchArray          = [];       // 搜索预存
 
     /**
      * 返回成功消息
@@ -178,6 +179,16 @@ class RootController extends BaseController
     }
 
     /**
+     * 限定包含查询字段
+     *
+     * @param array $fields
+     */
+    protected function setIncludeOnlyFilter(array $fields)
+    {
+        $this->_only_include_filters = $fields;
+    }
+
+    /**
      * 排除查询字段
      *
      * @param array $fields
@@ -271,18 +282,12 @@ class RootController extends BaseController
         //////////////////////////////////////////////////////////////
         // 解析排序
         //////////////////////////////////////////////////////////////
-        if (isset($input['orderby']) && !empty($input['orderby']))
-        {
-            $model = $this->parseOrder($model, $input['orderby']);
-        }
+        $model = $this->parseOrder($model, $input['orderby'] ?? '');
 
         //////////////////////////////////////////////////////////////
         // 解析搜索
         //////////////////////////////////////////////////////////////
-        if (isset($input['search']) && !empty($input['search']))
-        {
-            $model = $this->parseSearch($model, $input['search']);
-        }
+        $model = $this->parseSearch($model, $input['search'] ?? '');
 
         //////////////////////////////////////////////////////////////
         // 解析过滤
@@ -292,18 +297,12 @@ class RootController extends BaseController
             throw new \InvalidArgumentException("缺少查询过滤参数");
         }
 
-        if (isset($input['filter']) && !empty($input['filter']))
-        {
-            $model = $this->parseFilter($model, $input['filter']);
-        }
+        $model = $this->parseFilter($model, $input['filter'] ?? '');
 
         //////////////////////////////////////////////////////////////
         // 解析包含关系
         //////////////////////////////////////////////////////////////
-        if (isset($input['include']) && !empty($input['include']))
-        {
-            $model = $this->parseInclude($model, $input['include']);
-        }
+        $model = $this->parseInclude($model, $input['include'] ?? '');
 
         //////////////////////////////////////////////////////////////
         // 解析获取数量
@@ -728,7 +727,22 @@ class RootController extends BaseController
                     $_obj         = $_group_array[0];
                     $_fields      = $_group_array[1];
                     $_method      = 'with' . ucfirst($_group_array[2] ?? '');
-                    $model        = call_user_func([$model, $_method], [
+
+                    // 非法字段
+                    if (!empty($this->_only_include_filters[$_obj]))
+                    {
+                        $_only_fields_array_ = explode(',', $_fields);
+                        $include_only_filter = array_diff($_only_fields_array_, $this->_only_include_filters[$_obj]);
+
+                        if (!empty($include_only_filter))
+                        {
+                            $only_fields = implode(',', $include_only_filter);
+
+                            throw new \InvalidArgumentException("{$_obj}查询过滤参数({$only_fields})无效");
+                        }
+                    }
+
+                    $model = call_user_func([$model, $_method], [
                         $_obj => function ($query) use ($_fields, $_obj, $_method)
                         {
                             $model = $query;
@@ -823,6 +837,11 @@ class RootController extends BaseController
                 }
                 else
                 {
+                    if (!empty($this->_only_include_filters[$_group]))
+                    {
+                        throw new \InvalidArgumentException("{$_group}必须指定查询过滤参数");
+                    }
+
                     if (in_array($_group, array_keys($this->_searchArray)))
                     {
                         $_search = $this->_searchArray[$_group];
