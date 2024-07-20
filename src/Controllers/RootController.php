@@ -686,7 +686,7 @@ class RootController extends BaseController
                 {
                     $only_fields = implode(',', $only_filter);
 
-                    throw new \InvalidArgumentException("查询过滤参数(${$only_fields})无效");
+                    throw new \InvalidArgumentException("查询过滤参数({$only_fields})无效");
                 }
             }
 
