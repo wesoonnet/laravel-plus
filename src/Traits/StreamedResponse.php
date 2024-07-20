@@ -60,16 +60,22 @@ trait StreamedResponse
                 'content' => $content,
             ]);
 
-            echo dechex(strlen($msg)) . "\r\n" . $msg . "\r\n";
+            echo $msg . "\r\n";
 
-            ob_flush();
+            if (ob_get_level())
+            {
+                ob_flush();
+            }
             flush();
 
             if ('DONE' == strtoupper($event) || 'ERROR' == strtoupper($event))
             {
-                echo "0\r\n\r\n";
+                echo "\r\n\r\n";
 
-                ob_flush();
+                if (ob_get_level())
+                {
+                    ob_flush();
+                }
                 flush();
             }
         }
@@ -81,7 +87,10 @@ trait StreamedResponse
                     'content' => $content,
                 ]) . "\n\n";
 
-            ob_flush();
+            if (ob_get_level())
+            {
+                ob_flush();
+            }
             flush();
         }
     }
