@@ -43,14 +43,14 @@ trait StreamedResponse
     /**
      * 输出到缓冲区
      *
-     * @param string $event
-     * @param mixed  $requestId
-     * @param string $content
-     * @param string $format
+     * @param string           $event
+     * @param mixed            $requestId
+     * @param string|int|array $content
+     * @param string           $format
      *
      * @return void
      */
-    public static function writeStream(string $event, mixed $requestId, string $content = " ", string $format = 'event-stream'): void
+    public static function writeStream(string $event, mixed $requestId, string|int|array $content = " ", string $format = 'event-stream'): void
     {
         if ('chunked' == $format)
         {
